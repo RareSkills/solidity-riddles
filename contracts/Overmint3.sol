@@ -8,7 +8,7 @@ contract Overmint3 is ERC721 {
     mapping(address => uint256) public amountMinted;
     uint256 public totalSupply;
 
-    constructor() ERC721("Overmint1", "AT") {}
+    constructor() ERC721("Overmint3", "AT") {}
 
     function mint() external {
         require(!msg.sender.isContract(), "no contracts");

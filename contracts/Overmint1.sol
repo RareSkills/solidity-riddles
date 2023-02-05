@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.15;
 import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-contract Overmint1 is ERC1155 {
+contract Overmint1 is ERC721 {
     using Address for address;
     mapping(address => uint256) public amountMinted;
     uint256 public totalSupply;
@@ -13,7 +13,7 @@ contract Overmint1 is ERC1155 {
     function mint() external {
         require(amountMinted[msg.sender] <= 3, "max 3 NFTs");
         totalSupply++;
-        _mint(msg.sender, totalSupply);
+        _safeMint(msg.sender, totalSupply);
         amountMinted[msg.sender]++;
     }
 

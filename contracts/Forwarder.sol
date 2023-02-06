@@ -10,7 +10,7 @@ contract Wallet {
     }
 
     function sendEther(address destination, uint256 amount) public {
-        require(msg.sender == forwarder);
+        require(msg.sender == forwarder, "sender must be forwarder contract");
         (bool success, ) = destination.call{value: amount}("");
         require(success, "failed");
     }

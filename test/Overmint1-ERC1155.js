@@ -29,7 +29,7 @@ describe(NAME, function () {
         });
 
         after(async function () {
-            expect(await victimContract.balanceOf(attackerWallet.address)).to.be.equal(5);
+            expect(await victimContract.balanceOf(attackerWallet.address, 0)).to.be.equal(5);
             expect(await ethers.provider.getTransactionCount(attackerWallet.address)).to.lessThan(3, "must exploit in two transactions or less");
         });
     });

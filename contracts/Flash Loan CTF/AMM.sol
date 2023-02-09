@@ -1,50 +1,102 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.11;
+pragma solidity 0.8.15;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract AMMOracle {
+library TransferHelper {
+    function safeTransfer(address token, address to, uint256 value) internal {
+        // bytes4(keccak256(bytes('transfer(address,uint256)')));
+        (bool success, bytes memory data) = token.call(
+            abi.encodeWithSelector(0xa9059cbb, to, value)
+        );
+        require(
+            success && (data.length == 0 || abi.decode(data, (bool))),
+            "TransferHelper::safeTransfer: transfer failed"
+        );
+    }
+
+    function safeTransferFrom(
+        address token,
+        address from,
+        address to,
+        uint256 value
+    ) internal {
+        (bool success, bytes memory data) = token.call(
+            abi.encodeWithSelector(0x23b872dd, from, to, value)
+        );
+        require(
+            success && (data.length == 0 || abi.decode(data, (bool))),
+            "TransferHelper::transferFrom: transferFrom failed"
+        );
+    }
+}
+
+contract AMM {
     IERC20 public immutable lendToken;
 
     uint256 public lendTokenReserve; //R0
     uint256 public ethReserve; //R1
 
     //1 ether = 2000 usd
-    //1 ether = 2,476 lend token
     //1 lend token = 100 usd
+    //1 ether = 20 lend token
+
+    /**
+     * Assume that the price of ETH doesn't change throughout this CTF.
+     *
+     * Change in reserve ratio is therefore only as a result of
+     * the lend token falling or rising in respect to ETH and not
+     * ETH rising or falling in respect to lend token
+     */
+
     constructor(address _lendToken) payable {
         lendToken = IERC20(_lendToken);
         require(msg.value == 20 ether, "Send 20 ether for initial Eth reserve");
-        ethReserve = msg.value;
-        lendToken.transferFrom(msg.sender, address(this), 400 * 1e18);
-        lendTokenReserve = lendToken.balanceOf(address(this));
+        ethReserve = 20 ether;
+        lendTokenReserve = 400e18;
+        TransferHelper.safeTransferFrom(
+            _lendToken,
+            msg.sender,
+            address(this),
+            400e18
+        );
     }
 
     function swapLendTokenForEth(
-        uint lendTokenAmountIn
+        uint lendTokenAmountIn,
+        address to
     ) external returns (uint ethAmountOut) {
         require(lendTokenAmountIn > 0, "Amount in cannot be zero");
 
-        lendToken.transferFrom(msg.sender, address(this), lendTokenAmountIn);
+        // TransferHelper.safeTransferFrom(address(lendToken), msg.sender, address(this), lendTokenAmountIn);
+        // TAKE advantage of "donations" and avoid locked tokens
+        lendTokenAmountIn =
+            lendToken.balanceOf(address(this)) -
+            lendTokenReserve;
+
         ethAmountOut = getLendTokenToEthPrice(lendTokenAmountIn);
 
         lendTokenReserve += lendTokenAmountIn;
         ethReserve -= ethAmountOut;
 
-        (bool success, ) = payable(msg.sender).call{value: ethAmountOut}("");
+        (bool success, ) = payable(to).call{value: ethAmountOut}("");
         require(success);
     }
 
     function swapEthForLendToken(
-        uint ethAmountIn
+        uint ethAmountIn,
+        address to
     ) external payable returns (uint lendTokenAmountOut) {
         require(ethAmountIn > 0, "Amount should be greater than zero");
         require(msg.value == ethAmountIn, "Provide the right amount");
+
+        // TAKE advantage of "donations" and avoid locked tokens
+        // ethAmountIn = address(this).balance - ethReserve;
         lendTokenAmountOut = getEthToLendTokenPrice(ethAmountIn);
 
         ethReserve += msg.value;
         lendTokenReserve -= lendTokenAmountOut;
 
-        lendToken.transfer(msg.sender, lendTokenAmountOut);
+        lendToken.transfer(to, lendTokenAmountOut);
     }
 
     function getLendTokenToEthPrice(
@@ -63,5 +115,6 @@ contract AMMOracle {
             (ethReserve + _ethAmountIn);
     }
 
-    receive() external payable {}
+    // leaves the only way to send eth to the pool to be via adding LP and force-feed (selfdestruct)
+    // receive() external payable {}
 }

@@ -6,11 +6,11 @@ const NAME = "FlashLoan tests";
 
 describe(NAME, function () {
   async function setup() {
-    const [owner, attackerWallet] = await ethers.getSigners();
+    const [owner, lender, borrower] = await ethers.getSigners();
     const TwentyEther = ethers.utils.parseEther("20");
 
     await network.provider.send("hardhat_setBalance", [
-      owner.address,
+      lender.address,
       "0x56bc75e2d63100000", // 100 ether
     ]);
 
@@ -19,7 +19,21 @@ describe(NAME, function () {
     );
     const collateralTokenContract = await CollateralTokenFactory.deploy();
 
-    const createAddress = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"; // contract address of AMM
+    // get AMM address before deployment as we call transferFrom in its consttuctor so it needs to be approved
+    const createAddress =
+      "0x" +
+      ethers.utils
+        .keccak256(
+          ethers.utils.RLP.encode([
+            owner.address,
+            ethers.utils.hexZeroPad(
+              (await ethers.provider.getTransactionCount(owner.address)) + 1
+              // + 1 because we approve first before deloying it
+            ),
+          ])
+        )
+        .slice(26);
+    //"0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"; contract address of AMM
 
     await collateralTokenContract.approve(
       createAddress,
@@ -31,38 +45,96 @@ describe(NAME, function () {
       collateralTokenContract.address,
       { value: TwentyEther }
     );
-    console.log(AMMContract.address);
 
-    return { walletContract, forwarderContract, attackerWallet };
+    const LendingFactory = await ethers.getContractFactory("Lending");
+    const LendingContract = await LendingFactory.deploy(AMMContract.address);
+
+    const FlashLoanFactory = await ethers.getContractFactory("FlashLender");
+    const FlashLoanContract = await FlashLoanFactory.deploy(
+      [collateralTokenContract.address],
+      0
+    );
+
+    // INIT FLASHLOAN CONTRACT: SEND 500 lend tokens to flashloan contract
+    await collateralTokenContract.transfer(
+      FlashLoanContract.address,
+      ethers.utils.parseEther("500")
+    );
+
+    // owner deposits collateral to lending contract to be borrowable
+    // can also be done by calling LendingContract.addLiquidity() but this is cheaper because no calldata to pay for
+    await owner.sendTransaction({
+      value: ethers.utils.parseEther("6"),
+      to: LendingContract.address,
+      data: "0x",
+    });
+
+    // Send 500 tokens to borrower for collateral
+    await collateralTokenContract.transfer(
+      borrower.address,
+      ethers.utils.parseEther("500")
+    );
+    // Use borrowe to approve lending contract
+    await collateralTokenContract
+      .connect(borrower)
+      .approve(LendingContract.address, ethers.constants.MaxUint256);
+
+    // borrower takes loan and pays 240 tokens as collateral
+    await LendingContract.connect(borrower).borrowEth(
+      ethers.utils.parseEther("6")
+    );
+
+    return {
+      FlashLoanContract,
+      LendingContract,
+      AMMContract,
+      collateralTokenContract,
+      borrower,
+      lender,
+    };
   }
 
   describe("exploit", async function () {
-    let walletContract,
-      forwarderContract,
-      attackerWallet,
-      attackerWalletBalanceBefore;
+    let FlashLoanContract,
+      LendingContract,
+      AMMContract,
+      collateralTokenContract,
+      borrower,
+      lender;
     before(async function () {
-      ({ walletContract, forwarderContract, attackerWallet } =
-        await loadFixture(setup));
-      attackerWalletBalanceBefore = await ethers.provider.getBalance(
-        attackerWallet.address
-      );
+      ({
+        FlashLoanContract,
+        LendingContract,
+        AMMContract,
+        collateralTokenContract,
+        borrower,
+        lender,
+      } = await loadFixture(setup));
     });
 
     it("conduct your attack here", async function () {});
 
     after(async function () {
-      const attackerWalletBalanceAfter = await ethers.provider.getBalance(
-        attackerWallet.address
-      );
-      expect(
-        attackerWalletBalanceAfter.sub(attackerWalletBalanceBefore)
-      ).to.be.equal(ethers.utils.parseEther("1"));
+      /**
+       * Requirements:
+       * - Liquidate and take all collateral from lending contract and send to lender wallet
+       * - Do this in 2 transactions or less ?
+       */
+      const difference = (
+        await collateralTokenContract.balanceOf(lender.address)
+      ).sub(ethers.utils.parseEther("240")); // 240e18
 
-      const walletContractBalance = await ethers.provider.getBalance(
-        walletContract.address
-      );
-      expect(walletContractBalance).to.be.equal("0");
+      const pass = difference.gte(ethers.BigNumber.from(-30));
+
+      expect(pass).to.be.equal(true, "Must take all of borrower's collateral");
+
+      expect(
+        await collateralTokenContract.balanceOf(LendingContract.address)
+      ).to.be.equal(0, "must fully drain lending contract");
+
+      expect(
+        await ethers.provider.getTransactionCount(lender.address)
+      ).to.lessThan(3, "must exploit in two transactions or less");
     });
   });
 });

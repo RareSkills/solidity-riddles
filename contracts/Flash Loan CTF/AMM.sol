@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./Lending.sol";
 
 library TransferHelper {
     function safeTransfer(address token, address to, uint256 value) internal {
-        // bytes4(keccak256(bytes('transfer(address,uint256)')));
         (bool success, bytes memory data) = token.call(
             abi.encodeWithSelector(0xa9059cbb, to, value)
         );
@@ -62,16 +62,13 @@ contract AMM {
     }
 
     function swapLendTokenForEth(
-        uint lendTokenAmountIn,
         address to
     ) external returns (uint ethAmountOut) {
-        require(lendTokenAmountIn > 0, "Amount in cannot be zero");
-
         // TransferHelper.safeTransferFrom(address(lendToken), msg.sender, address(this), lendTokenAmountIn);
         // TAKE advantage of "donations" and avoid locked tokens
-        lendTokenAmountIn =
-            lendToken.balanceOf(address(this)) -
+        uint256 lendTokenAmountIn = lendToken.balanceOf(address(this)) -
             lendTokenReserve;
+        require(lendTokenAmountIn > 0, "Amount in cannot be zero");
 
         ethAmountOut = getLendTokenToEthPrice(lendTokenAmountIn);
 
@@ -83,14 +80,12 @@ contract AMM {
     }
 
     function swapEthForLendToken(
-        uint ethAmountIn,
         address to
     ) external payable returns (uint lendTokenAmountOut) {
-        require(ethAmountIn > 0, "Amount should be greater than zero");
-        require(msg.value == ethAmountIn, "Provide the right amount");
-
         // TAKE advantage of "donations" and avoid locked tokens
-        // ethAmountIn = address(this).balance - ethReserve;
+        uint256 ethAmountIn = address(this).balance - ethReserve;
+        require(ethAmountIn > 0, "Amount should be greater than zero");
+
         lendTokenAmountOut = getEthToLendTokenPrice(ethAmountIn);
 
         ethReserve += msg.value;
@@ -115,6 +110,5 @@ contract AMM {
             (ethReserve + _ethAmountIn);
     }
 
-    // leaves the only way to send eth to the pool to be via adding LP and force-feed (selfdestruct)
-    // receive() external payable {}
+    receive() external payable {}
 }

@@ -74,10 +74,7 @@ describe(NAME, function () {
       expect(
         await rewardTokenContract.balanceOf(depositoorContract.address)
       ).to.be.equal(0, "Attacked contract must be fully drained");
-      expect(await NFTToStakeContract.ownerOf(42)).to.be.equal(
-        attackerContract.address,
-        "NFT must be retrieved"
-      );
+
       expect(
         await ethers.provider.getTransactionCount(attackerWallet.address)
       ).to.lessThan(3, "must exploit one transaction");

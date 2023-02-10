@@ -2,11 +2,12 @@
 pragma solidity 0.8.15;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./Interface/IAMMOracle.sol";
-import {TransferHelper, AMM} from "./AMM.sol";
+import  "./AMM.sol";
+import "./library/TransferHelper.sol";
 
 contract Lending {
-    AMM immutable oracle;
-    address immutable lender;
+    AMM public immutable oracle;
+    address public immutable lender;
 
     // important to avoid division/modulo by 0 panic errors
     uint16 private constant collateralContext = 1_000;
@@ -18,7 +19,7 @@ contract Lending {
         uint256 borrowedAmount;
     }
 
-    mapping(address => LoanInfo) userToLoanInfo;
+    mapping(address => LoanInfo) public userToLoanInfo;
 
     constructor(address _oracle) {
         oracle = AMM(payable(_oracle));

@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./Interface/IAMMOracle.sol";
-import  "./AMM.sol";
+import "./AMM.sol";
 import "./library/TransferHelper.sol";
 
 contract Lending {

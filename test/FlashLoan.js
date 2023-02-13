@@ -19,7 +19,7 @@ describe(NAME, function () {
     );
     const collateralTokenContract = await CollateralTokenFactory.deploy();
 
-    // get AMM address before deployment as we call transferFrom in its consttuctor so it needs to be approved
+    // get AMM address before deployment as we call transferFrom in its constructor so it needs to be approved
     const createAddress =
       "0x" +
       ethers.utils
@@ -28,7 +28,7 @@ describe(NAME, function () {
             owner.address,
             ethers.utils.hexZeroPad(
               (await ethers.provider.getTransactionCount(owner.address)) + 1
-              // + 1 because we approve first before deloying it
+              // + 1 because we approve first before deploying it
             ),
           ])
         )
@@ -74,7 +74,8 @@ describe(NAME, function () {
       borrower.address,
       ethers.utils.parseEther("500")
     );
-    // Use borrowe to approve lending contract
+
+    // Use borrower to approve lending contract
     await collateralTokenContract
       .connect(borrower)
       .approve(LendingContract.address, ethers.constants.MaxUint256);
@@ -101,6 +102,7 @@ describe(NAME, function () {
       collateralTokenContract,
       borrower,
       lender;
+
     before(async function () {
       ({
         FlashLoanContract,
@@ -121,7 +123,7 @@ describe(NAME, function () {
       /**
        * Requirements:
        * - Liquidate and take all collateral from lending contract and send to lender wallet
-       * - Do this in 2 transactions or less ?
+       * - Do this in 2 transactions or less?
        */
       const difference = (
         await collateralTokenContract.balanceOf(lender.address)

@@ -32,7 +32,7 @@ contract Lending {
 
     function removeLiquidity(uint256 amount) external {
         require(msg.sender == lender, "UNAUTHORIZED");
-        require(amount >= address(this).balance, "Insufficient balance");
+        require(amount <= address(this).balance, "Insufficient balance");
 
         (bool success, ) = payable(msg.sender).call{value: amount}("");
         require(success);
@@ -57,12 +57,12 @@ contract Lending {
         uint256 lendQuote = (oracle.lendTokenReserve() * ethAmount) /
             oracle.ethReserve();
 
-        // overcollaterize using overcollateralizationMultiplier
+        // overcollaterize collateral using overcollateralizationMultiplier
         lendTokenCollateral =
             (lendQuote * overcollateralizationMultiplier) /
             collateralContext;
 
-        // update storage
+        // update borrower info
         userToLoanInfo[msg.sender] = LoanInfo({
             collateralBalance: lendTokenCollateral,
             borrowedAmount: ethAmount

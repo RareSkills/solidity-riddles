@@ -7,8 +7,8 @@ import "./library/TransferHelper.sol";
 contract AMM {
     IERC20 public immutable lendToken;
 
-    uint256 public lendTokenReserve; //R0
-    uint256 public ethReserve; //R1
+    uint256 public lendTokenReserve; //Reserve0
+    uint256 public ethReserve; //Reserve1
 
     //1 ether = 2000 usd
     //1 lend token = 100 usd

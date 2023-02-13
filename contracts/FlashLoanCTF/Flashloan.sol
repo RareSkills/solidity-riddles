@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
-import "./Interface/IERC3156FlashBorrower.sol";
-import "./Interface/IERC3156FlashLender.sol";
+import "@openzeppelin/contracts/interfaces/IERC3156FlashBorrower.sol";
+import "@openzeppelin/contracts/interfaces/IERC3156FlashLender.sol";
 
 contract FlashLender is IERC3156FlashLender {
     bytes32 public constant CALLBACK_SUCCESS =

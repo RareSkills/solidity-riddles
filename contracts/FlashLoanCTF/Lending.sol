@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./Interface/IAMMOracle.sol";
 import "./AMM.sol";
-import "./library/TransferHelper.sol";
 
 contract Lending {
     AMM public immutable oracle;
@@ -69,8 +69,8 @@ contract Lending {
         });
 
         // transfer collateral in
-        TransferHelper.safeTransferFrom(
-            address(oracle.lendToken()),
+        SafeERC20.safeTransferFrom(
+            oracle.lendToken(),
             msg.sender,
             address(this),
             lendTokenCollateral
@@ -105,12 +105,12 @@ contract Lending {
         userToLoanInfo[borrower] = LoanInfo(0, 0);
 
         // transfer owed amount to liquidator (msg.sender)
-        TransferHelper.safeTransfer(address(token), msg.sender, amount);
+        SafeERC20.safeTransfer(token, msg.sender, amount);
 
         // transfer left overs to borrower if any
         if (loanInfo.collateralBalance != amount) {
-            TransferHelper.safeTransfer(
-                address(oracle.lendToken()),
+            SafeERC20.safeTransfer(
+                oracle.lendToken(),
                 msg.sender,
                 loanInfo.collateralBalance - lendQuote
             );
@@ -122,8 +122,8 @@ contract Lending {
             userToLoanInfo[msg.sender].borrowedAmount -= msg.value;
         } else {
             userToLoanInfo[msg.sender].borrowedAmount = 0;
-            TransferHelper.safeTransfer(
-                address(oracle.lendToken()),
+            SafeERC20.safeTransfer(
+                oracle.lendToken(),
                 msg.sender,
                 userToLoanInfo[msg.sender].collateralBalance
             );

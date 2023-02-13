@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./Lending.sol";
-import "./library/TransferHelper.sol";
 
 contract AMM {
     IERC20 public immutable lendToken;
@@ -27,8 +27,8 @@ contract AMM {
         require(msg.value == 20 ether, "Send 20 ether for initial Eth reserve");
         ethReserve = 20 ether;
         lendTokenReserve = 400e18;
-        TransferHelper.safeTransferFrom(
-            _lendToken,
+        SafeERC20.safeTransferFrom(
+            lendToken,
             msg.sender,
             address(this),
             400e18
@@ -38,7 +38,7 @@ contract AMM {
     function swapLendTokenForEth(
         address to
     ) external returns (uint ethAmountOut) {
-        // TransferHelper.safeTransferFrom(address(lendToken), msg.sender, address(this), lendTokenAmountIn);
+        // SafeERC20.safeTransferFrom(address(lendToken), msg.sender, address(this), lendTokenAmountIn);
         // TAKE advantage of "donations" and avoid locked tokens
         uint256 lendTokenAmountIn = lendToken.balanceOf(address(this)) -
             lendTokenReserve;

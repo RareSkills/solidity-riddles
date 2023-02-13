@@ -3,6 +3,7 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 const NAME = "FlashLoan tests";
+const OneHundred_Ether = "0x56bc75e2d63100000";
 
 describe(NAME, function () {
   async function setup() {
@@ -11,7 +12,7 @@ describe(NAME, function () {
 
     await network.provider.send("hardhat_setBalance", [
       lender.address,
-      "0x56bc75e2d63100000", // 100 ether
+      OneHundred_Ether, // 100 ether
     ]);
 
     const CollateralTokenFactory = await ethers.getContractFactory(

@@ -4,6 +4,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./AMM.sol";
 
+// assume this is a private pool where only one address can provide LP
 contract Lending {
     AMM public immutable oracle;
     address public immutable lender;
@@ -20,12 +21,12 @@ contract Lending {
 
     mapping(address => LoanInfo) public userToLoanInfo;
 
+    // deployer is sole lender
     constructor(address _oracle) {
         oracle = AMM(payable(_oracle));
         lender = msg.sender;
     }
 
-    // assume this is a private pool where only one address can provide LP
     // can be solved using shares msg.value as sqrt(k)
     function addLiquidity() external payable {}
 
@@ -116,10 +117,16 @@ contract Lending {
         }
     }
 
+    // When ether is sent, it is used to pay off msg.sender's loan if any
+    // if msg.sender has no borrowed amount or sends more than that, it is seen as a donation
+    // Lender can use this to add more liquidity to pool
     receive() external payable {
+        // if value sent is less than msg.sender's loan, reduce owed amount
         if (msg.value < userToLoanInfo[msg.sender].borrowedAmount) {
             userToLoanInfo[msg.sender].borrowedAmount -= msg.value;
         } else {
+            // if it is greater than or equal to the borrrowed amount, set borrowed amount to zero
+            // and send collateral back to msg.msg.sender
             userToLoanInfo[msg.sender].borrowedAmount = 0;
             SafeERC20.safeTransfer(
                 oracle.lendToken(),

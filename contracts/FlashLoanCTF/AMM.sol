@@ -23,6 +23,7 @@ contract AMM {
      */
 
     constructor(address _lendToken) payable {
+        // initialize
         lendToken = IERC20(_lendToken);
         require(msg.value == 20 ether, "Send 20 ether for initial Eth reserve");
         ethReserve = 20 ether;
@@ -38,7 +39,6 @@ contract AMM {
     function swapLendTokenForEth(
         address to
     ) external returns (uint ethAmountOut) {
-        // SafeERC20.safeTransferFrom(address(lendToken), msg.sender, address(this), lendTokenAmountIn);
         // TAKE advantage of "donations" and avoid locked tokens
         uint256 lendTokenAmountIn = lendToken.balanceOf(address(this)) -
             lendTokenReserve;

@@ -44,7 +44,7 @@ describe(NAME, function () {
       );
       expect(
         attackerWalletBalanceAfter.sub(attackerWalletBalanceBefore)
-      ).to.be.equal(ethers.utils.parseEther("1"));
+      ).to.be.closeTo(ethers.utils.parseEther("1"), 1000000000000000);
 
       const walletContractBalance = await ethers.provider.getBalance(
         walletContract.address

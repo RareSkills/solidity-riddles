@@ -28,7 +28,9 @@ describe(NAME, function () {
     it("conduct your attack here", async function () {});
 
     after(async function () {
-      expect(await provider.getBalance(victimContract.address)).to.be.equal(0);
+      expect(
+        await ethers.provider.getBalance(victimContract.address)
+      ).to.be.equal(0);
       expect(
         await ethers.provider.getTransactionCount(attackerWallet.address)
       ).to.equal(1, "must exploit one transaction");

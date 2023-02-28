@@ -11,7 +11,7 @@ contract Overmint2 is ERC721 {
     function mint() external {
         require(balanceOf(msg.sender) <= 3, "max 3 NFTs");
         totalSupply++;
-        _safeMint(msg.sender, totalSupply);
+        _mint(msg.sender, totalSupply);
     }
 
     function success() external view returns (bool) {

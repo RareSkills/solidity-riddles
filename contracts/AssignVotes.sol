@@ -53,6 +53,7 @@ contract AssignVotes {
     function vote(uint256 proposal) public {
         require(!alreadyVoted[msg.sender], "cannot vote twice");
         require(assignedBy[msg.sender] != address(0), "not assigned a vote");
+        alreadyVoted[msg.sender] = true;
 
         proposals[proposal].votes++;
     }

@@ -11,6 +11,7 @@ describe("Viceroy", async function () {
   before(async function () {
     ;[_, attackerWallet] = await ethers.getSigners()
 
+    // Name your contract GovernanceAttacker. It will be minted the NFT it needs.
     const AttackerFactory = await ethers.getContractFactory(
       "GovernanceAttacker",
     )
@@ -38,7 +39,9 @@ describe("Viceroy", async function () {
   })
 
   // prettier-ignore;
-  it("conduct your attack here", async function () {})
+  it("conduct your attack here", async function () {
+    await attacker.attack(governance);
+  });
 
   after(async function () {
     const walletBalance = await ethers.provider.getBalance(

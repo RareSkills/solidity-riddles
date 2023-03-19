@@ -1,13 +1,3 @@
-# Sample Hardhat Project
+# Solidity Riddles by [RareSkills](https://www.rareskills.io)
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
-
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-GAS_REPORT=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
-```
+A set of CTFs to fill in the gaps of other CTF collections. Inspired by [Ethernaut](https://ethernaut.openzeppelin.com/) and [Damn Vulnerable DeFi](https://damnvulnerabledefi.xyz/). Most challenges require solving in one transaction, pay close attention to the restrictions in the tests.

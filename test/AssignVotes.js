@@ -43,6 +43,7 @@ describe(NAME, function () {
         .assign("0xBcd4042DE499D14e55001CcbB24a551F3b954096");
     });
 
+    // you may only use the attacker wallet, and no other wallet
     it("conduct your attack here", async function () {});
 
     after(async function () {

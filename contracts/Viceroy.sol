@@ -13,7 +13,8 @@ contract OligarchyNFT is ERC721 {
     function _beforeTokenTransfer(
         address from,
         address,
-        uint256
+        uint256, // firstTokenId
+        uint256 // batchsize
     ) internal override {
         require(from == address(0), "Cannot transfer nft"); // oligarch cannot transfer the NFT
     }

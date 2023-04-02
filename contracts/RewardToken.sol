@@ -49,8 +49,6 @@ contract Depositoor is IERC721Receiver {
     mapping(uint256 => bool) public alreadyUsed;
     mapping(address => Stake) public stakes;
 
-    function depositNFT() public {}
-
     function setRewardToken(IERC20 _rewardToken) external {
         require(!init);
         init = true;

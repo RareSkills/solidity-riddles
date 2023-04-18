@@ -3,5 +3,16 @@ require("hardhat-tracer");
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.15",
+    solidity: {
+        compilers: [
+            {
+                version: "0.8.15",
+            },
+        ],
+        overrides: {
+            "contracts/NameServiceBank.sol": {
+                version: "0.7.0",
+            },
+        },
+    },
 };

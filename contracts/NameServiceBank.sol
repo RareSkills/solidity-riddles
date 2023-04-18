@@ -1,6 +1,7 @@
 pragma solidity 0.7.0;
 
 // This contract has a vulnerability where user funds can be stolen, exploit it.
+// Author: Michael Amadi. twitter.com/AmadiMichaels, github.com/AmadiMichael
 contract NAME_SERVICE_BANK {
     bytes32 private constant KECCAK_0X = keccak256(abi.encode(new bytes(0)));
 

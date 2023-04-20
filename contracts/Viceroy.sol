@@ -56,6 +56,7 @@ contract Governance {
         require(!idUsed[id], "already appointed a viceroy");
         require(viceroy.code.length == 0, "only EOA");
 
+        idUsed[id] = true;
         viceroys[viceroy].appointedBy = id;
         viceroys[viceroy].numAppointments = 5;
     }

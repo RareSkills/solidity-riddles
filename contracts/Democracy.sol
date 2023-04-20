@@ -29,10 +29,6 @@ contract Democracy is Ownable, ERC721 {
     mapping(address => uint256) public votes;
     bool public electionCalled = false;
 
-    constructor() payable ERC721("Democracy NFT", "DMRCY") {
-        incumbent = owner();
-    }
-
     modifier electionNotYetCalled() {
         require(!electionCalled, "DemocracyNft: Election has ended");
         _;
@@ -65,6 +61,10 @@ contract Democracy is Ownable, ERC721 {
             "DemocracyNft: Feature available to EOAs only"
         );
         _;
+    }
+
+    constructor() payable ERC721("Democracy NFT", "DMRCY") {
+        incumbent = owner();
     }
 
     function nominateChallenger(address challenger_) external {

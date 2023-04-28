@@ -61,7 +61,7 @@ contract DiamondHands {
     /// @notice call this function to get your NFT back and lose your 1 Ether deposit
     ///         returns everyone's NFT to them
     /// @dev deletes the loser from the array of NFT deposits and transfers everyone's NFTs back to them
-    function loseDiamondHands() external   {
+    function loseDiamondHands() external nonReentrant  {
         bool onlyOwnercanCall;
         uint ownerindex;
             gameOver = true;

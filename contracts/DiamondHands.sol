@@ -3,7 +3,7 @@ pragma solidity ^0.8.15;
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "hardhat/console.sol";
 
 // A community has just minted a new NFT project. To prevent the floor price from dropping
 // the community must agree to not sell their NFTs for as long as possible.
@@ -25,16 +25,23 @@ contract DiamondHands {
 //////////////////////// Constant  ////////////////////////s
     IERC721 public immutable nft;
 
-    
 ///////////////////////// Storage ///////////////////////// 
     NFTDeposit[] public deposits;
     bool public gameOver;
     uint public deadline;
     bool public withdrawn;
+    uint public LOCK = 1;
 
     struct NFTDeposit {
         address owner;
         uint256 id;
+    }
+
+    modifier nonReentrant() {
+        require(LOCK ==1, "Reentrant call");
+        LOCK = 2;
+        _;
+        LOCK = 1;
     }
 
 ///////////////////////// User Functions /////////////////////////
@@ -42,34 +49,35 @@ contract DiamondHands {
 /// @notice call this function to deposit your NFT and 1 Ether
 /// @param id the id of the NFT you want to deposit
     function playDiamondHands(uint256 id) external payable {
-        unchecked{
-        require(!gameOver, "game is over");
-        require(msg.value == 1 ether, "you must deposit 1 ether");
-        require(deposits.length < 20, "only 20 NFTs can be deposited");
-        nft.transferFrom(msg.sender, address(this), id);
-        deposits.push(NFTDeposit({owner: msg.sender, id: id}));
-        }
+
+            require(!gameOver, "game is over");
+            require(msg.value == 1 ether, "you must deposit 1 ether");
+            require(deposits.length < 20, "only 20 NFTs can be deposited");
+            nft.transferFrom(msg.sender, address(this), id);
+            deposits.push(NFTDeposit({owner: msg.sender, id: id}));
+        
     }
 
     /// @notice call this function to get your NFT back and lose your 1 Ether deposit
     ///         returns everyone's NFT to them
     /// @dev deletes the loser from the array of NFT deposits and transfers everyone's NFTs back to them
-    function loseDiamondHands() external {
+    function loseDiamondHands() external   {
         bool onlyOwnercanCall;
-        unchecked{
-        gameOver = true;
-        // delete loser
-        for (uint i = 0 ; i < deposits.length; ){
-            nft.safeTransferFrom(address(this),deposits[i].owner, deposits[i].id);
-            if(deposits[i].owner == msg.sender){
-                onlyOwnercanCall = true;
-                delete deposits[i];
-            }
-                       
-            i++;
-        }   
-        require(onlyOwnercanCall, "only owner can call this function");
-        }
+        uint ownerindex;
+            gameOver = true;
+            // delete loser
+            uint len = deposits.length;
+            for (uint i = 0 ; i < len; i++){
+                
+                nft.safeTransferFrom(address(this),deposits[i].owner, deposits[i].id);
+                
+                if(deposits[i].owner == msg.sender){
+                    onlyOwnercanCall = true;
+                    ownerindex = i;
+                }   
+            }   
+            require(onlyOwnercanCall, "only owner can call this function");
+            delete deposits[ownerindex];
     }
 
 /// @notice Withdraw the 1 Ether deposit after the deadline
@@ -91,8 +99,7 @@ contract DiamondHands {
    /// @param _nft the address of the NFT contract
     constructor(IERC721 _nft) {
         nft = _nft;
-        deadline = block.timestamp + 1 days;
-        
+        deadline = block.timestamp + 1 days;    
     }
-
 }
+

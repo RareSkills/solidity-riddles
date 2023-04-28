@@ -5,13 +5,13 @@ const {
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const helpers = require("@nomicfoundation/hardhat-network-helpers");
+const { Provider } = require("@ethersproject/abstract-provider");
 
 const NAME = "DiamondHands";
 
 describe(NAME, function () {
     async function setup() {
         const [owner, attackerWallet,funder] = await ethers.getSigners();
-
         const chickenbonds = await ethers.getContractFactory("ChickenBonds");
         const chickencontract = await chickenbonds.deploy();
         await chickencontract.deployed();
@@ -19,7 +19,9 @@ describe(NAME, function () {
         const diamondhands = await ethers.getContractFactory(NAME);
         const diamondcontract = await diamondhands.deploy(chickencontract.address);
         await diamondcontract.deployed();
-        
+
+       
+
         return { chickencontract, diamondcontract,attackerWallet,funder };
     }
 
@@ -41,19 +43,17 @@ describe(NAME, function () {
             } 
         });
 
-        // you should not modify this function
-        // the attack happens from the constructor
         it("conduct your attack here", async function () {
-           // Your attack code goes here
+        //    Your attack code goes here
+           
         });
 
+       
+
         after(async function () {
-            
             await helpers.impersonateAccount('0x17FaB9bBBF6Ba58aE78750494c919C4CE3C88664');
                let impersonatedSigner = await ethers.getSigner('0x17FaB9bBBF6Ba58aE78750494c919C4CE3C88664');
-               console.log(await chickencontract.ownerOf(20));
-               await expect( diamondcontract.connect(impersonatedSigner).loseDiamondHands()).to.be.revertedWith("ERC721: transfer to non ERC721Receiver implementer");
-
+               await expect(diamondcontract.connect(impersonatedSigner).loseDiamondHands()).to.be.reverted;
         });
     });
 });

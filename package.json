@@ -5,6 +5,7 @@
     "hardhat": "^2.11.1"
   },
   "dependencies": {
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@openzeppelin/contracts": "^4.7.3",
     "hardhat-tracer": "^1.2.1",
     "i": "^0.3.7",
